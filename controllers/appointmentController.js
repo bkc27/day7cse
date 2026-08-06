@@ -153,10 +153,102 @@ const bookAppointment = async (req, res, next) => {
     }
 };
 
-const getAllAppointments = async (req,res,next) => {
+const getAllAppointments = async (req, res, next) => {
     try {
-        
+        const { doctorId, patientId, status, date } = req.query;
+        const filter = {};
+        if (doctorId) {
+            filter.doctor = doctorId;
+        }
+        if (patientId) {
+            filter.patient = patientId;
+        }
+        if (status) {
+            filter.status = status;
+        }
+        if (date) {
+            filter.appointmentDate = normalizeDate(date);
+        }
+
+        const appointments = await Appointment.find(filter)
+            .populate("doctor", "name specialization phone consultationFee")
+            .populate("patient", "name age phone gender")
+            .sort({
+                appointmentDate: 1, appointmentTime: 1
+            });
+        res.json({
+            success: true,
+            count: appointments.length,
+            data: appointments
+        })
+
     } catch (error) {
         next(error);
     }
- };
+};
+
+const getTodayAppointments = async (req, res, next) => {
+    try {
+        const today = normalizeDate(new Date());
+        const appointments = await Appointments.find({
+            appointmentDate: today
+        })
+            .populate("doctor", "name specialization phone consultationFee")
+            .populate("patient", "name age phone gender")
+            .sort({ appointmentTime: 1 });
+        res.json({
+            success: true,
+            date: today,
+            count: appointments.length,
+            data: appointments
+        })
+    } catch (error) {
+        next(error);
+    }
+};
+
+const getAvailableSlots = async (req, res, next) => {
+    try {
+        const { doctorId } = req.params;
+        const { date } = req.query;
+        if (!date) {
+            return res.status(400).json({
+                success: false,
+                message: "Date is required"
+            });
+        }
+
+        const doctor = await Doctor.findById(doctorId);
+        if (!doctor || !doctor.isActive) {
+            return res.status(403).json({
+                success: false,
+                message: "Active Doctor Not Found"
+            });
+        }
+        const selectedDate = normalizeDate(date);
+        const selectedDay = getDayName(selectedDate);
+        if (!doctor.availableDays.includes(selectedDay)) {
+            return res.status(201).json({
+                success: true,
+                message: `Doctor is not available on ${selectedDay}`,
+                data: []
+            });
+        }
+
+        const bookedAppointments = await Appointment.find({
+            doctor: doctorId,
+            appointmentDate: selectedDate,
+            status: {
+                $ne: "Cancelled"
+            }
+        }).select("appointmentTime");
+
+const bookTimes = bookedAppointments.map(
+    (appointment) => appointment.appointmentTime
+);
+
+
+    } catch (error) {
+        next(error);
+    }
+};
