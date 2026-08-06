@@ -15,7 +15,8 @@ const getDayName = (date) => {
 };
 
 const normalizeDate = (dateValue) => {
-    const date = new Date(dateValue);
+    const date = new Date();
+    // console.log(date);
     date.setHours(0, 0, 0, 0);
     return date;
 };
@@ -126,35 +127,36 @@ const bookAppointment = async (req, res, next) => {
         const tokenNumber = appointmentCount + 1;
 
         const appointment = await Appointment({
-            appointmentNumber : generateAppointmentNumber(),
-            doctor : doctorId,
-            patient : patient._id,
-            appointmentDate : selectedDate,
+            appointmentNumber: generateAppointmentNumber(),
+            doctor: doctorId,
+            patient: patient._id,
+            appointmentDate: selectedDate,
             appointmentTime,
             reason,
-            symptoms : symptoms || [],
-            bookingType : bookingType || "Online",
-            consulationFee : doctor.consultationFee,
+            symptoms: symptoms || [],
+            bookingType: bookingType || "Online",
+            consulationFee: doctor.consultationFee,
             tokenNumber
         });
 
-    const populatedAppointment = await Appointment.findById(appointment._id)
-    .populate("doctor", "name specialization phone consulationFee")
-    .populate("patient","name age phone gender");
+        const populatedAppointment = await Appointment.findById(appointment._id)
+            .populate("doctor", "name specialization phone consulationFee")
+            .populate("patient", "name age phone gender");
 
         res.status(201).json({
-            success:true,
-            message:"Appointment Booked Successfully",
-            data:populatedAppointment
-        })
-
-
-
-
-
-
-
+            success: true,
+            message: "Appointment Booked Successfully",
+            data: populatedAppointment
+        });
     } catch (error) {
         next(error);
     }
 };
+
+const getAllAppointments = async (req,res,next) => {
+    try {
+        
+    } catch (error) {
+        next(error);
+    }
+ };
