@@ -285,3 +285,96 @@ const getAvailableSlots = async (req, res, next) => {
     }
 };
 
+const getSingleAppointment = async (req, res, next) => {
+    try {
+        const appointment = await Appointment.findById(req.params.id)
+            .populate("doctor")
+            .populate("patient");
+        if (!appointment) {
+            return res.status(403).json({
+                status: false,
+                message: "Appointment not found"
+            });
+        }
+        res.json({
+            success: true,
+            data: appointment
+        })
+    } catch (error) {
+        next(error);
+    }
+};
+
+const updateAppointmentStatus = async (req, res, next) => {
+    try {
+        const { status } = req.body;
+        const allowedStatuses = ["Pending", "Confirmed", "Checked-In", "Completed", "Cancelled"];
+        if (!allowedStatuses.includes(status)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid Appointment Status"
+            });
+        }
+        const appointment = await Appointment.findById(req.params.id);
+        if (!appointment) {
+            return res.status(404).json({
+                success: false,
+                message: "Appointment Not Found"
+            });
+        }
+        appointment.status = status;
+        await appointment.save();
+        if (status === "Completed") {
+            await Patient.findByIdAndUpdate(appointment.patient, {
+                $inc: {
+                    totalVisits: 1
+                },
+                lastVisit: new Date()
+            });
+        }
+        const updatedAppoitment = await Appointment.findById(appointment._id)
+            .populate("doctor", "name specialization")
+            .populate("patienit", "name phone totalVisits");
+        res.json({
+            success: true,
+            message: `Appointmnet status changed to ${status}`,
+            data: updatedAppoitment
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const updatePaymentStatus = async (req, res, next) => {
+    try {
+        const { paymentStatus } = req.body;
+        const allowedStatuses = ["Pending", "Paid", "Refunded"];
+        if (!allowedStatuses.includes(paymentStatus)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid payment status"
+            });
+        }
+        const appointment = await Appointment.findByIdAndUpdate(req.params.id,
+            { paymentStatus },
+            {
+                new: true,
+                runValidators: true
+            }
+        );
+        if (!appointment) {
+            return res.status(403).json({
+                success: false,
+                message: "Appointment Not Found"
+            });
+        }
+        res.json({
+            success: true,
+            message: "Payment Status Updated",
+            data: appointment
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
