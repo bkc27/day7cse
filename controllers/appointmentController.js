@@ -243,12 +243,45 @@ const getAvailableSlots = async (req, res, next) => {
             }
         }).select("appointmentTime");
 
-const bookTimes = bookedAppointments.map(
-    (appointment) => appointment.appointmentTime
-);
+        const bookTimes = bookedAppointments.map(
+            (appointment) => appointment.appointmentTime
+        );
 
+        const slots = [];
+
+        let [startHour, startMinute] = doctor.startTime
+            .split(":")
+            .map(Number);
+        let [endHour, endMinute] = doctor.endTime
+            .split(":")
+            .map(Number);
+
+        let currentMinutes = startHour * 60 + startMinute;
+        let endMinutes = endHour * 60 + endMinute;
+
+        while (currentMinutes < endMinutes) {
+            const hour = Math.floor(currentMinutes / 60);
+            const minute = currentMinutes % 60;
+            const formattedTime = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+            slots.push({
+                time: formattedTime,
+                available: !bookTimes.includes(formattedTime)
+            });
+            currentMinutes += doctor.slotDuration;
+        }
+        res.json({
+            success: true,
+            doctor: {
+                id: doctor._id,
+                name: doctor.name,
+                slotDuration: doctor.slotDuration
+            },
+            date: selectedDate,
+            data: slots
+        })
 
     } catch (error) {
         next(error);
     }
 };
+
