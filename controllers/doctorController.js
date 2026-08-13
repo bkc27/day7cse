@@ -3,6 +3,7 @@ const Appointment = require("../models/Appointment");
 
 const createDoctor = async (req, res, next) => {
     try {
+        console.log(req.body);
         const doctor = await Doctor.create(req.body);
         res.status(201).json({
             success: true,

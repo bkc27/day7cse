@@ -15,7 +15,7 @@ const getDayName = (date) => {
 };
 
 const normalizeDate = (dateValue) => {
-    const date = new Date();
+    const date = new Date(dateValue);
     // console.log(date);
     date.setHours(0, 0, 0, 0);
     return date;
@@ -34,6 +34,8 @@ const bookAppointment = async (req, res, next) => {
                 message: "Please provide all required fields"
             });
         }
+
+        console.log(doctorId);
 
         const doctor = await Doctor.findById(doctorId);
         if (!doctor) {
@@ -61,6 +63,10 @@ const bookAppointment = async (req, res, next) => {
         }
 
         const selectedDay = getDayName(selectedDate);
+
+        console.log("Selected Day:", selectedDay);
+        console.log("Selected Date:", selectedDate);
+
         if (!doctor.availableDays.includes(selectedDay)) {
             return res.status(400).json({
                 success: false,
@@ -139,9 +145,14 @@ const bookAppointment = async (req, res, next) => {
             tokenNumber
         });
 
-        const populatedAppointment = await Appointment.findById(appointment._id)
+        console.log("Appointment Object:", appointment);
+        console.log("Appointmetn ID:", appointment._id);
+
+        const populatedAppointment = await Appointment.findOne({ _id: appointment._id })
             .populate("doctor", "name specialization phone consulationFee")
             .populate("patient", "name age phone gender");
+
+            console.log("Populated Appointment:", populatedAppointment);
 
         res.status(201).json({
             success: true,

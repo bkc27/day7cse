@@ -25,6 +25,14 @@ app.get("/", (req,res)=> {
 app.use("/api/doctors",doctorRoutes);
 app.use("/api/patients",patientRoutes);
 app.use("/api/appointments",appointmentRoutes);
+app.use((req,res)=>{
+    res.status(404).json({
+        success:false,
+        message:"API URL DOES NOT EXIST"
+    });
+});
+
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5001;
 app.listen(PORT,()=>{

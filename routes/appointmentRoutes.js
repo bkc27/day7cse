@@ -1,6 +1,6 @@
 const express = require("express");
 const { bookAppointment, getAllAppointments, getTodayAppointments, getAvailableSlots, getSingleAppointment, updateAppointmentStatus, updatePaymentStatus } = require("../controllers/appointmentController");
-const routes = express.Router();
+const router = express.Router();
 
 router.post("/book",bookAppointment);
 router.get("/",getAllAppointments);
@@ -10,4 +10,4 @@ router.get("/:id",getSingleAppointment);
 router.patch("/:id/status",updateAppointmentStatus);
 router.patch("/:id/payment",updatePaymentStatus);
 
-module.exports = rotuer;
+module.exports = router;
