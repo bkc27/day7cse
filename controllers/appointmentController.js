@@ -132,7 +132,7 @@ const bookAppointment = async (req, res, next) => {
 
         const tokenNumber = appointmentCount + 1;
 
-        const appointment = await Appointment({
+        const appointment = await Appointment.create({
             appointmentNumber: generateAppointmentNumber(),
             doctor: doctorId,
             patient: patient._id,
@@ -148,8 +148,8 @@ const bookAppointment = async (req, res, next) => {
         console.log("Appointment Object:", appointment);
         console.log("Appointmetn ID:", appointment._id);
 
-        const populatedAppointment = await Appointment.findOne({ _id: appointment._id })
-            .populate("doctor", "name specialization phone consulationFee")
+        const populatedAppointment = await Appointment.findById(appointment._id)
+            .populate("doctor", "name specialization phone consultationFee")
             .populate("patient", "name age phone gender");
 
             console.log("Populated Appointment:", populatedAppointment);
@@ -201,7 +201,7 @@ const getAllAppointments = async (req, res, next) => {
 const getTodayAppointments = async (req, res, next) => {
     try {
         const today = normalizeDate(new Date());
-        const appointments = await Appointments.find({
+        const appointments = await Appointment.find({
             appointmentDate: today
         })
             .populate("doctor", "name specialization phone consultationFee")
@@ -345,7 +345,7 @@ const updateAppointmentStatus = async (req, res, next) => {
         }
         const updatedAppoitment = await Appointment.findById(appointment._id)
             .populate("doctor", "name specialization")
-            .populate("patienit", "name phone totalVisits");
+            .populate("patient", "name phone totalVisits");
         res.json({
             success: true,
             message: `Appointmnet status changed to ${status}`,

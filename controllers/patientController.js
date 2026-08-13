@@ -56,7 +56,7 @@ const getPatientAppointments = async (req, res, next) => {
     try {
         const { id } = req.params;
         const appointments = await Appointment.find({ patient: id })
-            .populate("doctor", "name specialization consulationFee roomNumber")
+            .populate("doctor", "name specialization consultationFee roomNumber")
             .sort({ appointmentDate: -1 });
         res.json({
             success: true,
